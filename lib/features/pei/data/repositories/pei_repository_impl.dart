@@ -1,4 +1,5 @@
 import '../../domain/entities/aluno.dart';
+import '../../domain/entities/escola.dart';
 import '../../domain/entities/meta_pei.dart';
 import '../../domain/entities/registro_diario.dart';
 import '../../domain/repositories/pei_repository.dart';
@@ -10,6 +11,26 @@ class PeiRepositoryImpl implements PeiRepository {
   final PeiSupabaseDatasource _datasource;
 
   @override
+  Future<Escola?> obterEscolaAtual() {
+    return _datasource.obterEscolaAtual();
+  }
+
+  @override
+  Future<Escola> criarEscola(String nome) {
+    return _datasource.criarEscola(nome);
+  }
+
+  @override
+  Future<Escola> entrarNaEscola(String codigoConvite) {
+    return _datasource.entrarNaEscola(codigoConvite);
+  }
+
+  @override
+  Future<void> atualizarNomeEscola(String escolaId, String novoNome) {
+    return _datasource.atualizarNomeEscola(escolaId, novoNome);
+  }
+
+  @override
   Future<List<Aluno>> listarAlunos({String? busca}) {
     return _datasource.listarAlunos(busca: busca);
   }
@@ -18,12 +39,14 @@ class PeiRepositoryImpl implements PeiRepository {
   Future<Aluno> criarAluno({
     required String nome,
     required String turma,
+    String? escolaId,
     String? diagnostico,
     String? observacoes,
   }) {
     return _datasource.criarAluno(
       nome: nome,
       turma: turma,
+      escolaId: escolaId,
       diagnostico: diagnostico,
       observacoes: observacoes,
     );

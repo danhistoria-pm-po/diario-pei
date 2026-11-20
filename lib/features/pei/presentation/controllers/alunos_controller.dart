@@ -57,6 +57,7 @@ class AlunosController extends ChangeNotifier {
   Future<Aluno?> criarAluno({
     required String nome,
     required String turma,
+    String? escolaId,
     String? diagnostico,
     String? observacoes,
   }) async {
@@ -68,6 +69,7 @@ class AlunosController extends ChangeNotifier {
       final novo = await _repository.criarAluno(
         nome: nome,
         turma: turma,
+        escolaId: escolaId,
         diagnostico: diagnostico,
         observacoes: observacoes,
       );

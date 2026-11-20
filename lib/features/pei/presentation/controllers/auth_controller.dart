@@ -72,6 +72,10 @@ class AuthController extends ChangeNotifier {
       final response = await _client.auth.signUp(
         email: email.trim(),
         password: password,
+        data: <String, dynamic>{
+          'lgpd_aceito': true,
+          'lgpd_aceito_em': DateTime.now().toUtc().toIso8601String(),
+        },
       );
       _session = response.session;
       if (_session == null) {

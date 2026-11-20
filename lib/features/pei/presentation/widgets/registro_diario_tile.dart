@@ -58,6 +58,29 @@ class RegistroDiarioTile extends StatelessWidget {
               registro.descricao,
               style: theme.textTheme.bodyMedium,
             ),
+            if (registro.autorEmail != null &&
+                registro.autorEmail!.trim().isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.person_outline,
+                    size: 14,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'Registrado por ${registro.autorEmail}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

@@ -3,6 +3,7 @@ class RegistroDiario {
     required this.id,
     required this.alunoId,
     required this.professorId,
+    this.autorEmail,
     required this.dataRegistro,
     required this.categoria,
     required this.descricao,
@@ -12,6 +13,7 @@ class RegistroDiario {
   final String id;
   final String alunoId;
   final String professorId;
+  final String? autorEmail;
   final DateTime dataRegistro;
   final String categoria;
   final String descricao;
@@ -21,6 +23,7 @@ class RegistroDiario {
     String? id,
     String? alunoId,
     String? professorId,
+    String? autorEmail,
     DateTime? dataRegistro,
     String? categoria,
     String? descricao,
@@ -30,6 +33,7 @@ class RegistroDiario {
       id: id ?? this.id,
       alunoId: alunoId ?? this.alunoId,
       professorId: professorId ?? this.professorId,
+      autorEmail: autorEmail ?? this.autorEmail,
       dataRegistro: dataRegistro ?? this.dataRegistro,
       categoria: categoria ?? this.categoria,
       descricao: descricao ?? this.descricao,

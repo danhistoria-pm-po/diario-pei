@@ -4,6 +4,7 @@ class AlunoModel extends Aluno {
   const AlunoModel({
     required super.id,
     required super.professorId,
+    super.escolaId,
     required super.nome,
     required super.turma,
     super.diagnostico,
@@ -15,6 +16,7 @@ class AlunoModel extends Aluno {
     return AlunoModel(
       id: map['id'] as String,
       professorId: map['professor_id'] as String,
+      escolaId: map['escola_id'] as String?,
       nome: map['nome'] as String,
       turma: map['turma'] as String,
       diagnostico: map['diagnostico'] as String?,
@@ -27,6 +29,7 @@ class AlunoModel extends Aluno {
     return <String, dynamic>{
       'id': id,
       'professor_id': professorId,
+      'escola_id': escolaId,
       'nome': nome,
       'turma': turma,
       'diagnostico': diagnostico,

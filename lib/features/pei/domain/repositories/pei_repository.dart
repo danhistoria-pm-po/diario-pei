@@ -1,13 +1,23 @@
 import '../entities/aluno.dart';
+import '../entities/escola.dart';
 import '../entities/meta_pei.dart';
 import '../entities/registro_diario.dart';
 
 abstract class PeiRepository {
+  Future<Escola?> obterEscolaAtual();
+
+  Future<Escola> criarEscola(String nome);
+
+  Future<Escola> entrarNaEscola(String codigoConvite);
+
+  Future<void> atualizarNomeEscola(String escolaId, String novoNome);
+
   Future<List<Aluno>> listarAlunos({String? busca});
 
   Future<Aluno> criarAluno({
     required String nome,
     required String turma,
+    String? escolaId,
     String? diagnostico,
     String? observacoes,
   });

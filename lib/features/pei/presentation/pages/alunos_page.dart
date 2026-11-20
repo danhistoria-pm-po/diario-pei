@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../domain/entities/aluno.dart';
+import '../../domain/entities/escola.dart';
 import '../../domain/repositories/pei_repository.dart';
 import '../controllers/alunos_controller.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/escola_controller.dart';
 import '../widgets/aluno_form_dialog.dart';
 import 'prontuario_page.dart';
 
 class AlunosPage extends StatefulWidget {
   const AlunosPage({
     super.key,
+    required this.escola,
+    required this.escolaController,
     required this.repository,
     required this.authController,
   });
 
+  final Escola escola;
+  final EscolaController escolaController;
   final PeiRepository repository;
   final AuthController authController;
 
@@ -38,6 +45,43 @@ class _AlunosPageState extends State<AlunosPage> {
     super.dispose();
   }
 
+  Future<void> _copiarCodigoConvite() async {
+    await Clipboard.setData(ClipboardData(text: widget.escola.codigoConvite));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Código de convite "${widget.escola.codigoConvite}" copiado.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editarNomeEscola() async {
+    final novoNome = await showDialog<String>(
+      context: context,
+      builder: (_) => _EditarEscolaDialog(nomeInicial: widget.escola.nome),
+    );
+
+    if (novoNome == null || novoNome == widget.escola.nome) return;
+
+    final ok = await widget.escolaController.atualizarNomeEscola(
+      widget.escola.id,
+      novoNome,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Nome da escola atualizado para "$novoNome".'
+              : (widget.escolaController.errorMessage ??
+                    'Erro ao atualizar nome da escola.'),
+        ),
+      ),
+    );
+  }
+
   Future<void> _abrirCadastroAluno() async {
     final result = await showDialog<AlunoFormResult>(
       context: context,
@@ -48,6 +92,7 @@ class _AlunosPageState extends State<AlunosPage> {
     final criado = await _controller.criarAluno(
       nome: result.nome,
       turma: result.turma,
+      escolaId: widget.escola.id,
       diagnostico: result.diagnostico,
       observacoes: result.observacoes,
     );
@@ -149,11 +194,77 @@ class _AlunosPageState extends State<AlunosPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
+                Card(
+                  color: theme.colorScheme.primaryContainer.withValues(
+                    alpha: 0.35,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: <Widget>[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(
+                              Icons.school_outlined,
+                              size: 20,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                widget.escola.nome,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            if (widget.escola.papelUsuario == 'coordenador')
+                              IconButton(
+                                tooltip: 'Editar nome da escola',
+                                icon: const Icon(Icons.edit_outlined, size: 18),
+                                visualDensity: VisualDensity.compact,
+                                onPressed: _editarNomeEscola,
+                              ),
+                          ],
+                        ),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: <Widget>[
+                            Chip(
+                              label: Text(
+                                'Código: ${widget.escola.codigoConvite}',
+                              ),
+                              visualDensity: VisualDensity.compact,
+                              side: BorderSide.none,
+                              backgroundColor: theme.colorScheme.surface,
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: _copiarCodigoConvite,
+                              icon: const Icon(Icons.copy, size: 16),
+                              label: const Text('Copiar código'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
                 TextField(
                   controller: _searchController,
                   onChanged: _controller.atualizarBusca,
                   decoration: InputDecoration(
-                    hintText: 'Buscar aluno por nome, turma ou diagnóstico...',
+                    hintText: 'Buscar aluno por nome, turma ou adaptação...',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: ListenableBuilder(
                       listenable: _controller,
@@ -312,6 +423,75 @@ class _AlunosPageState extends State<AlunosPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _EditarEscolaDialog extends StatefulWidget {
+  const _EditarEscolaDialog({required this.nomeInicial});
+
+  final String nomeInicial;
+
+  @override
+  State<_EditarEscolaDialog> createState() => _EditarEscolaDialogState();
+}
+
+class _EditarEscolaDialogState extends State<_EditarEscolaDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.nomeInicial);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _salvar() {
+    if (_formKey.currentState?.validate() ?? false) {
+      Navigator.of(context).pop(_controller.text.trim());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Editar nome da escola'),
+      content: SizedBox(
+        width: 400,
+        child: Form(
+          key: _formKey,
+          child: TextFormField(
+            controller: _controller,
+            autofocus: true,
+            onFieldSubmitted: (_) => _salvar(),
+            decoration: const InputDecoration(
+              labelText: 'Nome da escola *',
+            ),
+            validator: (value) {
+              if (value == null || value.trim().length < 3) {
+                return 'Informe o nome da escola (mín. 3 caracteres).';
+              }
+              return null;
+            },
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: _salvar,
+          child: const Text('Salvar'),
+        ),
+      ],
     );
   }
 }

@@ -21,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isSignUpMode = false;
   bool _obscurePassword = true;
+  bool _lgpdAceito = false;
 
   @override
   void dispose() {
@@ -31,6 +32,17 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    if (_isSignUpMode && !_lgpdAceito) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'É obrigatório aceitar os Termos de Uso e Diretrizes da LGPD para criar conta.',
+          ),
+        ),
+      );
+      return;
+    }
 
     if (_isSignUpMode) {
       await widget.authController.signUp(
@@ -47,7 +59,67 @@ class _LoginPageState extends State<LoginPage> {
 
   void _toggleMode() {
     widget.authController.clearMessages();
-    setState(() => _isSignUpMode = !_isSignUpMode);
+    setState(() {
+      _isSignUpMode = !_isSignUpMode;
+      _lgpdAceito = false;
+    });
+  }
+
+  Future<void> _abrirTermoLgpd() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Termo de Uso e Diretrizes da LGPD'),
+        content: const SizedBox(
+          width: 480,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  'Ao utilizar o Diário PEI, você concorda com as seguintes diretrizes de privacidade e proteção de dados educacionais:',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '1. Responsabilidade no tratamento de dados de menores (Art. 14 da LGPD): '
+                  'O educador e a instituição de ensino são responsáveis pela coleta, registro e compartilhamento adequado das informações de estudantes, devendo atuar sempre no melhor interesse do aluno e em conformidade com as autorizações da escola e das famílias.',
+                ),
+                SizedBox(height: 10),
+                Text(
+                  '2. Minimização de dados pessoais: '
+                  'Recomenda-se identificar o estudante utilizando apenas o primeiro nome + inicial do sobrenome (ou código de matrícula escolar), evitando expor dados pessoais desnecessários.',
+                ),
+                SizedBox(height: 10),
+                Text(
+                  '3. Foco estritamente pedagógico: '
+                  'Os campos de adaptação, metas e diário de bordo devem priorizar estratégias pedagógicas, recursos de acessibilidade e avanços de aprendizagem — evite armazenar diagnósticos clínicos detalhados, laudos médicos ou códigos CID.',
+                ),
+                SizedBox(height: 10),
+                Text(
+                  '4. Sigilo e finalidade exclusiva: '
+                  'As informações registradas são de uso sigiloso e exclusivo para fins pedagógicos e de acompanhamento escolar pela equipe autorizada da instituição.',
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              setState(() => _lgpdAceito = true);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Concordo e aceito'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -59,13 +131,14 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 440),
             child: ListenableBuilder(
               listenable: widget.authController,
               builder: (context, _) {
                 final isLoading = widget.authController.isLoading;
                 final error = widget.authController.errorMessage;
                 final info = widget.authController.infoMessage;
+                final canSubmit = !isLoading && (!_isSignUpMode || _lgpdAceito);
 
                 return Card(
                   child: Padding(
@@ -155,7 +228,9 @@ class _LoginPageState extends State<LoginPage> {
                             autofillHints: const <String>[
                               AutofillHints.password,
                             ],
-                            onFieldSubmitted: (_) => _submit(),
+                            onFieldSubmitted: (_) {
+                              if (canSubmit) _submit();
+                            },
                             decoration: InputDecoration(
                               labelText: 'Senha',
                               prefixIcon: const Icon(Icons.lock_outline),
@@ -182,9 +257,39 @@ class _LoginPageState extends State<LoginPage> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 20),
+                          if (_isSignUpMode) ...[
+                            const SizedBox(height: 14),
+                            CheckboxListTile(
+                              value: _lgpdAceito,
+                              onChanged: isLoading
+                                  ? null
+                                  : (checked) {
+                                      setState(
+                                        () => _lgpdAceito = checked ?? false,
+                                      );
+                                    },
+                              contentPadding: EdgeInsets.zero,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              title: Text(
+                                'Li e concordo com os Termos de Uso e Diretrizes da LGPD para tratamento de dados educacionais.',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton.icon(
+                                onPressed: isLoading ? null : _abrirTermoLgpd,
+                                icon: const Icon(
+                                  Icons.privacy_tip_outlined,
+                                  size: 18,
+                                ),
+                                label: const Text('Ler Termo LGPD'),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 18),
                           FilledButton(
-                            onPressed: isLoading ? null : _submit,
+                            onPressed: canSubmit ? _submit : null,
                             child: isLoading
                                 ? const SizedBox(
                                     height: 20,

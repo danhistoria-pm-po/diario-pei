@@ -6,7 +6,9 @@ import 'features/pei/data/datasources/pei_supabase_datasource.dart';
 import 'features/pei/data/repositories/pei_repository_impl.dart';
 import 'features/pei/domain/repositories/pei_repository.dart';
 import 'features/pei/presentation/controllers/auth_controller.dart';
+import 'features/pei/presentation/controllers/escola_controller.dart';
 import 'features/pei/presentation/pages/alunos_page.dart';
+import 'features/pei/presentation/pages/escola_setup_page.dart';
 import 'features/pei/presentation/pages/login_page.dart';
 
 class DiarioPeiApp extends StatelessWidget {
@@ -40,6 +42,8 @@ class _AuthGate extends StatefulWidget {
 class _AuthGateState extends State<_AuthGate> {
   late final AuthController _authController;
   late final PeiRepository _repository;
+  late final EscolaController _escolaController;
+  String? _lastLoadedUserId;
 
   @override
   void initState() {
@@ -47,10 +51,32 @@ class _AuthGateState extends State<_AuthGate> {
     final client = SupabaseConfig.client;
     _authController = AuthController(client);
     _repository = PeiRepositoryImpl(PeiSupabaseDatasource(client));
+    _escolaController = EscolaController(_repository);
+
+    _authController.addListener(_syncEscolaWithAuth);
+    _syncEscolaWithAuth();
+  }
+
+  void _syncEscolaWithAuth() {
+    if (!_authController.isAuthenticated) {
+      if (_lastLoadedUserId != null) {
+        _lastLoadedUserId = null;
+        _escolaController.limpar();
+      }
+      return;
+    }
+
+    final userId = _authController.currentUser?.id;
+    if (userId != null && userId != _lastLoadedUserId) {
+      _lastLoadedUserId = userId;
+      _escolaController.carregarEscolaAtual();
+    }
   }
 
   @override
   void dispose() {
+    _authController.removeListener(_syncEscolaWithAuth);
+    _escolaController.dispose();
     _authController.dispose();
     super.dispose();
   }
@@ -58,15 +84,37 @@ class _AuthGateState extends State<_AuthGate> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: _authController,
+      listenable: Listenable.merge(<Listenable>[
+        _authController,
+        _escolaController,
+      ]),
       builder: (context, _) {
-        if (_authController.isAuthenticated) {
-          return AlunosPage(
-            repository: _repository,
+        if (!_authController.isAuthenticated) {
+          return LoginPage(authController: _authController);
+        }
+
+        if (!_escolaController.hasLoaded || _escolaController.isLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        final escola = _escolaController.escolaAtual;
+        if (escola == null) {
+          return EscolaSetupPage(
+            escolaController: _escolaController,
             authController: _authController,
           );
         }
-        return LoginPage(authController: _authController);
+
+        return AlunosPage(
+          escola: escola,
+          escolaController: _escolaController,
+          repository: _repository,
+          authController: _authController,
+        );
       },
     );
   }

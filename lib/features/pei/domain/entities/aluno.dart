@@ -2,6 +2,7 @@ class Aluno {
   const Aluno({
     required this.id,
     required this.professorId,
+    this.escolaId,
     required this.nome,
     required this.turma,
     this.diagnostico,
@@ -11,6 +12,7 @@ class Aluno {
 
   final String id;
   final String professorId;
+  final String? escolaId;
   final String nome;
   final String turma;
   final String? diagnostico;
@@ -20,6 +22,7 @@ class Aluno {
   Aluno copyWith({
     String? id,
     String? professorId,
+    String? escolaId,
     String? nome,
     String? turma,
     String? diagnostico,
@@ -29,6 +32,7 @@ class Aluno {
     return Aluno(
       id: id ?? this.id,
       professorId: professorId ?? this.professorId,
+      escolaId: escolaId ?? this.escolaId,
       nome: nome ?? this.nome,
       turma: turma ?? this.turma,
       diagnostico: diagnostico ?? this.diagnostico,
