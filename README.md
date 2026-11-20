@@ -21,6 +21,8 @@ O acompanhamento individualizado e as adaptações pedagógicas costumam ficar d
 - **Metas do PEI:** Checklist interativo de objetivos pedagógicos com controle de status (*Em andamento* / *Concluída*).
 - **Diário de Bordo:** Registro rápido por disciplina e data para documentar intervenções e estratégias que funcionaram em sala.
 - **Exportação Leve (Clipboard):** Botão **Copiar Resumo** que compila dados do aluno, metas e histórico recente direto para a área de transferência, pronto para colar em relatórios oficiais ou e-mails (sem dependência de bibliotecas pesadas de PDF).
+- **Aba Relatório / AEE (Editor de Parecer):** Permite importar o resumo automático, editar livremente o parecer pedagógico e salvá-lo na nuvem (Supabase).
+- **Exportação em .DOC e .PDF:** Geração nativa via navegador de documento editável (`.doc` compatível com Word/Google Docs) e impressão formatada em folha A4 (`.pdf`), sem pacotes externos pesados.
 
 ---
 
@@ -39,7 +41,7 @@ lib/
 ├── core/
 │   ├── config/          # Inicialização do Supabase (via --dart-define)
 │   ├── theme/           # Tema Material 3 limpo e acessível
-│   └── utils/           # Formatador de resumo estruturado para Clipboard
+│   └── utils/           # Formatador de resumo (Clipboard) e export_helper.dart (.DOC / .PDF)
 └── features/
     └── pei/
         ├── domain/
@@ -110,6 +112,7 @@ Para evitar builds pesados localmente, recomenda-se o deploy contínuo via **Ver
 ## 🗺️ Roadmap
 - [x] Definição de arquitetura enxuta e modelagem relacional (SQL + RLS).
 - [x] MVP funcional (Login, Gestão de Alunos, Metas PEI, Diário de Bordo e Copiar Resumo).
+- [x] Exportação de relatórios pedagógicos / AEE em `.DOC` e `.PDF` (A4 nativo).
 - [ ] Compartilhamento multi-professor (acesso colaborativo por escola/turma).
 - [ ] Filtros por disciplina e período no Diário de Bordo.
 - [ ] Deploy contínuo em produção (PWA).
