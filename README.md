@@ -1,151 +1,146 @@
-# 📘 Diário PEI — Acompanhamento Educacional Individualizado
+# 📘 Diário PEI — Gestão Colaborativa de Plano Educacional Individualizado
 
-![Status](https://img.shields.io/badge/status-MVP%20Funcional-brightgreen)
+![Status](https://img.shields.io/badge/status-MVP%20Completo-brightgreen)
 ![Flutter](https://img.shields.io/badge/Flutter-Web%20(PWA)-02569B?logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20Auth-3ECF8E?logo=supabase&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20Auth%20%2B%20RLS-3ECF8E?logo=supabase&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Aplicação Web (PWA) leve e funcional desenvolvida para professores, coordenadores pedagógicos e equipes de EdTechs gerenciarem o **Plano Educacional Individualizado (PEI)** e a tutoria de alunos em um só lugar.
+**Diário PEI** é um Web App (PWA) desenvolvido com foco em escolas, equipes de Atendimento Educacional Especializado (AEE) e operações EdTech B2B para estruturar o **Plano Educacional Individualizado (PEI)** e construir memória pedagógica contínua de forma simples, colaborativa e em conformidade com a LGPD.
 
 ---
 
-## 🎯 Problema que Resolve
+## 🎯 Visão Geral do Produto
 
-O acompanhamento individualizado e as adaptações pedagógicas costumam ficar dispersos em cadernos, planilhas ou mensagens soltas, dificultando a continuidade do trabalho entre professores e bimestres. O **Diário PEI** centraliza o perfil de adaptação do aluno, suas metas pedagógicas e um diário de bordo cronológico, permitindo gerar resumos estruturados em segundos para reuniões, atas e relatórios.
+Nas escolas brasileiras, o acompanhamento de estudantes que necessitam de adaptações pedagógicas frequentemente se perde entre anotações isoladas, planilhas despadronizadas e trocas informais de mensagens. Quando muda o bimestre, o ano letivo ou o docente, a escola perde o histórico do que funcionou em sala de aula.
+
+O **Diário PEI** resolve essa dor institucional atuando em três pilares:
+
+- **Inclusão escolar orientada à prática:** transforma o PEI em um instrumento vivo de metas claras e registros cotidianos por disciplina.
+- **Memória institucional colaborativa:** conecta coordenação pedagógica, AEE e professores da mesma escola em um único prontuário compartilhado.
+- **Privacidade e conformidade (LGPD — Art. 14):** projetado desde a base com isolamento de dados por escola (RLS), aceite auditável de termo no cadastro e foco estritamente pedagógico (evitando exposição de dados clínicos sensíveis).
 
 ---
 
 ## ✨ Funcionalidades do MVP
 
-- **Autenticação Segura:** Acesso individualizado por e-mail e senha via Supabase Auth.
-- **Gestão de Alunos:** Cadastro rápido com turma e resumo do perfil de adaptação (ex.: *tempo extra, enunciados curtos, apoio de leitura*) + busca instantânea.
-- **Metas do PEI:** Checklist interativo de objetivos pedagógicos com controle de status (*Em andamento* / *Concluída*).
-- **Diário de Bordo:** Registro rápido por disciplina e data para documentar intervenções e estratégias que funcionaram em sala.
-- **Exportação Leve (Clipboard):** Botão **Copiar Resumo** que compila dados do aluno, metas e histórico recente direto para a área de transferência, pronto para colar em relatórios oficiais ou e-mails (sem dependência de bibliotecas pesadas de PDF).
-- **Aba Relatório / AEE (Editor de Parecer):** Permite importar o resumo automático, editar livremente o parecer pedagógico e salvá-lo na nuvem (Supabase).
-- **Exportação em .DOC e .PDF:** Geração nativa via navegador de documento editável (`.doc` compatível com Word/Google Docs) e impressão formatada em folha A4 (`.pdf`), sem pacotes externos pesados.
+### 🔐 Autenticação e Conformidade LGPD
+
+- Acesso individualizado por e-mail e senha via **Supabase Auth**.
+- Aceite obrigatório do **Termo de Uso e Diretrizes da LGPD (Art. 14)** no fluxo de criação de conta, com leitura completa em diálogo dedicado e registro auditável (`lgpd_aceito` e timestamp UTC `lgpd_aceito_em`) nos metadados do usuário.
+
+### 🏫 Ambiente Escolar Colaborativo (Multi-Professor)
+
+- Onboarding pós-login para **Criar nova escola** (gerando código curto `PEI-XXXX` e atribuindo papel `Coordenador`) ou **Entrar em uma escola** via código de convite (papel `Professor`).
+- Banner institucional na tela de alunos com nome da escola, código de convite com cópia rápida (`Clipboard`), **edição do nome da escola** e **Gestão de Equipe** exclusivos para o `Coordenador` (listagem de membros com papéis e remoção com confirmação).
+
+### 🧑‍🎓 Prontuário Pedagógico Completo
+
+- **Gestão de Alunos:** cadastro rápido com foco pedagógico e busca instantânea por nome, turma ou adaptação.
+- **Metas do PEI:** cadastro de objetivos por área pedagógica com prazo opcional e alteração rápida de status (*Pendente*, *Em andamento*, *Atingida*).
+- **Diário de Bordo Colaborativo:** linha do tempo cronológica com registro automático de autoria (`autor_email`), seleção de **Disciplina** e barra de filtros instantâneos por disciplina e período agrupado (**Todo o período**, **Últimos 30 dias**, **Trimestres** e **Bimestres**).
+
+### 📄 Relatório / AEE e Exportação Nativa (`.DOC` e `.PDF`)
+
+- Aba dedicada **Relatório / AEE** com editor multilinha e botão **Importar Resumo**, que compila automaticamente metas e registros do diário (incluindo `[Disciplina]`).
+- Exportação nativa via navegador — sem bibliotecas pesadas de PDF/Word:
+  - **Baixar `.DOC`:** gera documento editável compatível com Microsoft Word e Google Docs (UTF-8 com BOM).
+  - **PDF / Imprimir:** impressão limpa em folha A4 via `iframe` oculto (sem bloqueio de pop-up e sem URL/data do navegador no rodapé), com cabeçalho institucional da escola e linha de assinatura centralizada para **Coordenação Pedagógica / AEE**.
 
 ---
 
-## 🛠️ Stack Tecnológica e Decisões Arquiteturais
+## 🛠️ Arquitetura e Decisões Técnicas
 
-| Camada | Tecnologia | Justificativa |
+Projetado para rodar com fluidez inclusive em máquinas com **4 GB de RAM**, o projeto mantém apenas **`supabase_flutter`** como dependência externa no `pubspec.yaml` e dispensa completamente geradores de código (`build_runner`, `freezed`, `json_serializable`).
+
+| Camada | Escolha Técnica | Motivação |
 | :--- | :--- | :--- |
-| **Frontend** | Flutter (Web / PWA) & Dart | Base única responsiva acessível via navegador em celulares e computadores escolares. |
-| **Backend & Banco** | Supabase (PostgreSQL + Auth) | Banco relacional robusto com autenticação pronta e segurança a nível de linha (RLS). |
-| **Estado** | `ChangeNotifier` / `ValueNotifier` | Gerenciamento nativo do Flutter, eliminando pacotes externos e reduzindo o consumo de RAM. |
-| **Serialização** | Manual (`fromMap` / `toMap`) | Evita o uso de `build_runner` e geração de código, garantindo builds leves em máquinas com 4 GB de RAM. |
+| **Frontend** | Flutter Web (PWA) & Dart 3 | Experiência responsiva única para computadores escolares e dispositivos móveis. |
+| **Backend & Banco** | Supabase (PostgreSQL + Auth + RLS) | Modelagem relacional segura com isolamento por escola/usuário no banco de dados. |
+| **Arquitetura** | Clean Architecture Enxuta | Separação clara entre `domain`, `data` e `presentation` sem boilerplate excessivo. |
+| **Estado** | `ChangeNotifier` / `StatefulWidget` | Gerenciamento nativo do Flutter, previsível e de baixíssimo consumo de memória. |
+| **Serialização & Export** | `fromMap`/`toMap` manuais + `dart:js_interop` | Builds rápidos, zero codegen e geração nativa de `.doc` / `.pdf` no navegador. |
 
-### 📂 Estrutura de Pastas (Clean Architecture Enxuta)
+### 📂 Estrutura do Projeto
 
 ```text
 lib/
+├── app.dart                           # Bootstrap, _AuthGate e roteamento por vínculo escolar
+├── main.dart                          # Inicialização do Supabase
 ├── core/
-│   ├── config/          # Inicialização do Supabase (via --dart-define)
-│   ├── theme/           # Tema Material 3 limpo e acessível
-│   └── utils/           # Formatador de resumo (Clipboard) e export_helper.dart (.DOC / .PDF)
+│   ├── config/
+│   │   └── supabase_config.dart       # Leitura de SUPABASE_URL e SUPABASE_ANON_KEY (--dart-define)
+│   ├── theme/
+│   │   └── app_theme.dart             # Tema Material 3 limpo e acessível
+│   └── utils/
+│       ├── export_helper.dart         # Ponte multiplataforma (.DOC / .PDF) via dart:js_interop
+│       └── pei_summary_formatter.dart # Compilador de resumo estruturado para Clipboard e AEE
 └── features/
     └── pei/
         ├── domain/
-        │   ├── entities/       # Aluno, MetaPei, RegistroDiario
-        │   └── repositories/   # Interfaces (contratos abstratos)
+        │   ├── entities/              # Escola, MembroEscola, Aluno, MetaPei, RegistroDiario
+        │   └── repositories/          # Contrato PeiRepository
         ├── data/
-        │   ├── datasources/    # Comunicação direta com Supabase
-        │   ├── models/         # Mapeamento manual (fromMap / toMap)
-        │   └── repositories/   # Implementação dos contratos
+        │   ├── datasources/           # PeiSupabaseDatasource
+        │   ├── models/                # Mapeamento manual (fromMap / toMap)
+        │   └── repositories/          # PeiRepositoryImpl
         └── presentation/
-            ├── controllers/    # Gerenciamento de estado nativo
-            ├── pages/          # LoginPage, AlunosPage, ProntuarioPage
-            └── widgets/        # Cards, modais e formulários reutilizáveis
+            ├── controllers/           # AuthController, EscolaController, AlunosController, ProntuarioController
+            ├── pages/                 # LoginPage, EscolaSetupPage, AlunosPage, ProntuarioPage
+            └── widgets/               # Formulários, cards de metas e tiles do diário
 ```
 
 ---
 
-## 🔒 Segurança e Privacidade (LGPD)
-
-Por lidar com o contexto educacional de menores de idade, o projeto adota princípios de **Privacy by Design**:
-
-- **Isolamento de Dados (RLS):** Todas as tabelas no Supabase possuem *Row Level Security* ativado, garantindo que cada usuário autenticado acesse apenas seus próprios registros.
-- **Proteção de Credenciais:** As chaves da API (`SUPABASE_URL` e `SUPABASE_ANON_KEY`) nunca são versionadas no código-fonte, sendo injetadas exclusivamente em tempo de execução via `--dart-define`.
-- **Boas Práticas de Registro:** Recomenda-se registrar apenas o **primeiro nome + inicial** (ou código de matrícula) do estudante e focar o campo de adaptação em **estratégias pedagógicas**, evitando o armazenamento de diagnósticos clínicos ou códigos CID.
-
----
-
-## 🗄️ Configuração do Banco de Dados (Supabase)
-
-1. Crie um projeto gratuito no [Supabase](https://supabase.com/).
-2. No menu lateral, acesse **SQL Editor** e execute o script completo localizado em `supabase/schema.sql`.
-3. Em **Project Settings > API Keys**, copie a **Project URL** e a **Publishable Key** (ou `anon` key).
-
----
-
-## 🚀 Como Rodar Localmente (Otimizado para 4 GB de RAM)
+## 🚀 Como Rodar Localmente
 
 ### Pré-requisitos
 
-- Flutter SDK instalado (com suporte a Web habilitado)
-- Conta gratuita no Supabase
+- Flutter SDK (3.x+) com suporte a Web habilitado
+- Projeto configurado no [Supabase](https://supabase.com/) com o schema aplicado (`supabase/schema.sql` e tabelas multi-escola)
 
-### Execução
+### Passo a passo
 
 ```bash
 # 1. Clonar o repositório
 git clone https://github.com/danhistoria-pm-po/diario-pei.git
 cd diario-pei
 
-# 2. Instalar a única dependência do projeto
+# 2. Instalar dependências
 flutter pub get
 
-# 3. Rodar no Chrome passando as chaves do Supabase
+# 3. Executar no Chrome injetando as variáveis do Supabase
 flutter run -d chrome \
-  --dart-define=SUPABASE_URL=SUA_URL_AQUI \
-  --dart-define=SUPABASE_ANON_KEY=SUA_CHAVE_AQUI
+  --dart-define=SUPABASE_URL=https://SEU-PROJETO.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=SUA_SUPABASE_ANON_KEY
 ```
 
-*(Dica para máquinas com 4 GB de RAM: para economizar ainda mais memória, troque `-d chrome` por `-d web-server --web-port=8080` e abra `http://localhost:8080` em uma aba do seu navegador.)*
+*(Dica para máquinas com 4 GB de RAM: use `-d web-server --web-port=8080` no lugar de `-d chrome` para reduzir o uso de memória.)*
 
-### Validação de Código
-
-Antes de cada commit, valide a integridade do código sem sobrecarregar a máquina:
+### Validação e Testes
 
 ```bash
 flutter analyze
+flutter test
 ```
 
 ---
 
-## ☁️ Deploy (Build na Nuvem)
+## 🗺️ Roadmap (Próximos Passos)
 
-Para evitar builds pesados localmente, recomenda-se o deploy contínuo via **Vercel** ou **GitHub Pages (GitHub Actions)**, configurando `SUPABASE_URL` e `SUPABASE_ANON_KEY` como variáveis de ambiente diretamente no painel da plataforma escolhida.
-
----
-
-## 🗺️ Roadmap
-
-- [x] Definição de arquitetura enxuta e modelagem relacional (SQL + RLS).
-- [x] MVP funcional (Login, Gestão de Alunos, Metas PEI, Diário de Bordo e Copiar Resumo).
-- [x] Exportação de relatórios pedagógicos / AEE em `.DOC` e `.PDF` (A4 nativo).
-- [ ] Compartilhamento multi-professor (acesso colaborativo por escola/turma).
-- [ ] Filtros por disciplina e período no Diário de Bordo.
-- [ ] Deploy contínuo em produção (PWA).
-
----
-
-## 🤝 Boas Práticas e Contribuição
-
-Este projeto segue princípios de **Clean Architecture**, **Clean Code** e **Conventional Commits** (`feat:`, `fix:`, `docs:`, `refactor:`).
-
-1. Crie uma branch para sua alteração (`git checkout -b feat/nova-funcionalidade`).
-2. Mantenha o projeto livre de geradores de código (`build_runner`) e dependências desnecessárias.
-3. Garanta que `flutter analyze` retorne zero erros.
-4. Envie um Pull Request descrevendo claramente o problema resolvido.
+- [x] Arquitetura enxuta, schema relacional com RLS e autenticação com Termo LGPD auditável.
+- [x] Ambiente escolar colaborativo (código de convite, papéis, edição da escola e gestão de equipe).
+- [x] Prontuário completo com Metas do PEI, Diário de Bordo com disciplina/autoria e filtros por Trimestre e Bimestre.
+- [x] Aba Relatório / AEE com exportação nativa em `.DOC` e `.PDF` A4.
+- [ ] **Deploy PWA em produção** (CI/CD na nuvem com domínio próprio e instalação offline-first).
+- [ ] **Módulos de adaptação por disciplina** (banco de estratégias pedagógicas reutilizáveis por componente curricular).
+- [ ] **Camada comercial B2B** (painel multi-unidades para redes de ensino, planos por escola e indicadores de acompanhamento).
 
 ---
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a licença **MIT** — consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+Distribuído sob a licença **MIT**. Consulte o arquivo [LICENSE](LICENSE) para mais informações.
 
 ---
 

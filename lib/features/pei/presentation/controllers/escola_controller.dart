@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/escola.dart';
+import '../../domain/entities/membro_escola.dart';
 import '../../domain/repositories/pei_repository.dart';
 
 class EscolaController extends ChangeNotifier {
@@ -9,21 +10,27 @@ class EscolaController extends ChangeNotifier {
   final PeiRepository _repository;
 
   Escola? _escolaAtual;
+  List<MembroEscola> _membros = const <MembroEscola>[];
   bool _isLoading = false;
   bool _isSubmitting = false;
+  bool _isLoadingMembros = false;
   bool _hasLoaded = false;
   String? _errorMessage;
 
   Escola? get escolaAtual => _escolaAtual;
+  List<MembroEscola> get membros => List<MembroEscola>.unmodifiable(_membros);
   bool get isLoading => _isLoading;
   bool get isSubmitting => _isSubmitting;
+  bool get isLoadingMembros => _isLoadingMembros;
   bool get hasLoaded => _hasLoaded;
   String? get errorMessage => _errorMessage;
 
   void limpar() {
     _escolaAtual = null;
+    _membros = const <MembroEscola>[];
     _isLoading = false;
     _isSubmitting = false;
+    _isLoadingMembros = false;
     _hasLoaded = false;
     _errorMessage = null;
     notifyListeners();
@@ -100,6 +107,38 @@ class EscolaController extends ChangeNotifier {
     } finally {
       _isSubmitting = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> carregarMembros() async {
+    final escolaId = _escolaAtual?.id;
+    if (escolaId == null) return;
+
+    _isLoadingMembros = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _membros = await _repository.listarMembrosEscola(escolaId);
+    } catch (e) {
+      _errorMessage = 'Erro ao carregar equipe da escola: $e';
+    } finally {
+      _isLoadingMembros = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> removerMembro(String membroId) async {
+    _errorMessage = null;
+    try {
+      await _repository.removerMembroEscola(membroId);
+      _membros = _membros.where((m) => m.id != membroId).toList();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Não foi possível remover o membro: $e';
+      notifyListeners();
+      return false;
     }
   }
 }

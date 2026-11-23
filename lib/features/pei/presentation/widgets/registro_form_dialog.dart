@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/pei_summary_formatter.dart';
+import '../../domain/entities/registro_diario.dart';
 
 class RegistroFormResult {
   const RegistroFormResult({
     required this.dataRegistro,
     required this.categoria,
+    required this.disciplina,
     required this.descricao,
   });
 
   final DateTime dataRegistro;
   final String categoria;
+  final String disciplina;
   final String descricao;
 }
 
@@ -36,6 +39,7 @@ class _RegistroFormDialogState extends State<RegistroFormDialog> {
 
   DateTime _dataRegistro = DateTime.now();
   String _categoria = _categorias.first;
+  String _disciplina = kDisciplinasEscolares.first;
 
   @override
   void dispose() {
@@ -62,6 +66,7 @@ class _RegistroFormDialogState extends State<RegistroFormDialog> {
       RegistroFormResult(
         dataRegistro: _dataRegistro,
         categoria: _categoria,
+        disciplina: _disciplina,
         descricao: _descricaoController.text.trim(),
       ),
     );
@@ -86,6 +91,27 @@ class _RegistroFormDialogState extends State<RegistroFormDialog> {
                   label: Text(
                     'Data: ${PeiSummaryFormatter.formatDateBr(_dataRegistro)}',
                   ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: _disciplina,
+                  decoration: const InputDecoration(
+                    labelText: 'Disciplina',
+                    prefixIcon: Icon(Icons.menu_book_outlined),
+                  ),
+                  items: kDisciplinasEscolares
+                      .map(
+                        (disciplina) => DropdownMenuItem<String>(
+                          value: disciplina,
+                          child: Text(disciplina),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _disciplina = value);
+                    }
+                  },
                 ),
                 const SizedBox(height: 12),
                 const Text('Categoria'),

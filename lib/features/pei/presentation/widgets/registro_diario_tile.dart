@@ -16,6 +16,7 @@ class RegistroDiarioTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final disciplina = registro.disciplina?.trim();
 
     return Card(
       child: Padding(
@@ -24,28 +25,60 @@ class RegistroDiarioTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Icon(
-                  Icons.calendar_today_outlined,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  PeiSummaryFormatter.formatDateBr(registro.dataRegistro),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: <Widget>[
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            PeiSummaryFormatter.formatDateBr(
+                              registro.dataRegistro,
+                            ),
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (disciplina != null && disciplina.isNotEmpty)
+                        Chip(
+                          avatar: Icon(
+                            Icons.menu_book_outlined,
+                            size: 15,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                          label: Text(disciplina),
+                          visualDensity: VisualDensity.compact,
+                          side: BorderSide.none,
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          labelStyle: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      Chip(
+                        label: Text(registro.categoria),
+                        visualDensity: VisualDensity.compact,
+                        side: BorderSide.none,
+                        backgroundColor:
+                            theme.colorScheme.surfaceContainerHighest,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                Chip(
-                  label: Text(registro.categoria),
-                  visualDensity: VisualDensity.compact,
-                  side: BorderSide.none,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                ),
-                const Spacer(),
                 IconButton(
                   tooltip: 'Excluir registro',
                   icon: const Icon(Icons.delete_outline, size: 20),

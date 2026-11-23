@@ -1,5 +1,6 @@
 import '../entities/aluno.dart';
 import '../entities/escola.dart';
+import '../entities/membro_escola.dart';
 import '../entities/meta_pei.dart';
 import '../entities/registro_diario.dart';
 
@@ -11,6 +12,10 @@ abstract class PeiRepository {
   Future<Escola> entrarNaEscola(String codigoConvite);
 
   Future<void> atualizarNomeEscola(String escolaId, String novoNome);
+
+  Future<List<MembroEscola>> listarMembrosEscola(String escolaId);
+
+  Future<void> removerMembroEscola(String membroId);
 
   Future<List<Aluno>> listarAlunos({String? busca});
 
@@ -49,6 +54,7 @@ abstract class PeiRepository {
     required DateTime dataRegistro,
     required String categoria,
     required String descricao,
+    String? disciplina,
   });
 
   Future<void> excluirRegistro(String registroId);

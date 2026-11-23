@@ -6,17 +6,37 @@ import '../../domain/entities/meta_pei.dart';
 import '../../domain/entities/registro_diario.dart';
 import '../../domain/repositories/pei_repository.dart';
 
+enum FiltroPeriodoDiario {
+  todoPeriodo('Todo o período'),
+  ultimos30Dias('Últimos 30 dias'),
+  primeiroBimestre('1º Bimestre (Jan–Abr)'),
+  segundoBimestre('2º Bimestre (Mai–Jul)'),
+  terceiroBimestre('3º Bimestre (Ago–Set)'),
+  quartoBimestre('4º Bimestre (Out–Dez)'),
+  primeiroTrimestre('1º Trimestre (Jan–Abr)'),
+  segundoTrimestre('2º Trimestre (Mai–Ago)'),
+  terceiroTrimestre('3º Trimestre (Set–Dez)');
+
+  const FiltroPeriodoDiario(this.label);
+
+  final String label;
+}
+
 class ProntuarioController extends ChangeNotifier {
   ProntuarioController({
     required this.repository,
     required this.aluno,
   });
 
+  static const String filtroDisciplinaTodas = 'Todas';
+
   final PeiRepository repository;
   final Aluno aluno;
 
   List<MetaPei> _metas = const <MetaPei>[];
   List<RegistroDiario> _registros = const <RegistroDiario>[];
+  String _filtroDisciplina = filtroDisciplinaTodas;
+  FiltroPeriodoDiario _filtroPeriodo = FiltroPeriodoDiario.todoPeriodo;
   bool _isLoading = false;
   bool _isSaving = false;
   String? _errorMessage;
@@ -24,9 +44,84 @@ class ProntuarioController extends ChangeNotifier {
   List<MetaPei> get metas => List<MetaPei>.unmodifiable(_metas);
   List<RegistroDiario> get registros =>
       List<RegistroDiario>.unmodifiable(_registros);
+  List<RegistroDiario> get registrosFiltrados =>
+      List<RegistroDiario>.unmodifiable(
+        filtrarRegistros(
+          registros: _registros,
+          disciplina: _filtroDisciplina,
+          periodo: _filtroPeriodo,
+        ),
+      );
+  String get filtroDisciplina => _filtroDisciplina;
+  FiltroPeriodoDiario get filtroPeriodo => _filtroPeriodo;
+  bool get temFiltroAtivo =>
+      _filtroDisciplina != filtroDisciplinaTodas ||
+      _filtroPeriodo != FiltroPeriodoDiario.todoPeriodo;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   String? get errorMessage => _errorMessage;
+
+  static List<RegistroDiario> filtrarRegistros({
+    required List<RegistroDiario> registros,
+    required String disciplina,
+    required FiltroPeriodoDiario periodo,
+    DateTime? referencia,
+  }) {
+    final agora = referencia ?? DateTime.now();
+    final limite30Dias = DateTime(
+      agora.year,
+      agora.month,
+      agora.day,
+    ).subtract(const Duration(days: 30));
+
+    return registros.where((registro) {
+      if (disciplina != filtroDisciplinaTodas) {
+        final discRegistro = registro.disciplina?.trim();
+        if (discRegistro != disciplina) {
+          return false;
+        }
+      }
+
+      final data = registro.dataRegistro;
+      return switch (periodo) {
+        FiltroPeriodoDiario.todoPeriodo => true,
+        FiltroPeriodoDiario.ultimos30Dias => !data.isBefore(limite30Dias),
+        FiltroPeriodoDiario.primeiroBimestre =>
+          data.month >= 1 && data.month <= 4,
+        FiltroPeriodoDiario.segundoBimestre =>
+          data.month >= 5 && data.month <= 7,
+        FiltroPeriodoDiario.terceiroBimestre =>
+          data.month >= 8 && data.month <= 9,
+        FiltroPeriodoDiario.quartoBimestre =>
+          data.month >= 10 && data.month <= 12,
+        FiltroPeriodoDiario.primeiroTrimestre =>
+          data.month >= 1 && data.month <= 4,
+        FiltroPeriodoDiario.segundoTrimestre =>
+          data.month >= 5 && data.month <= 8,
+        FiltroPeriodoDiario.terceiroTrimestre =>
+          data.month >= 9 && data.month <= 12,
+      };
+    }).toList();
+  }
+
+  void setFiltroDisciplina(String disciplina) {
+    if (_filtroDisciplina == disciplina) return;
+    _filtroDisciplina = disciplina;
+    notifyListeners();
+  }
+
+  void setFiltroPeriodo(FiltroPeriodoDiario periodo) {
+    if (_filtroPeriodo == periodo) return;
+    _filtroPeriodo = periodo;
+    notifyListeners();
+  }
+
+  void limparFiltros() {
+    if (!temFiltroAtivo) return;
+    _filtroDisciplina = filtroDisciplinaTodas;
+    _filtroPeriodo = FiltroPeriodoDiario.todoPeriodo;
+    notifyListeners();
+  }
 
   Future<void> carregarProntuario() async {
     _isLoading = true;
@@ -119,6 +214,7 @@ class ProntuarioController extends ChangeNotifier {
     required DateTime dataRegistro,
     required String categoria,
     required String descricao,
+    String? disciplina,
   }) async {
     _isSaving = true;
     _errorMessage = null;
@@ -130,6 +226,7 @@ class ProntuarioController extends ChangeNotifier {
         dataRegistro: dataRegistro,
         categoria: categoria,
         descricao: descricao,
+        disciplina: disciplina,
       );
       _registros = <RegistroDiario>[novoRegistro, ..._registros]
         ..sort((a, b) {

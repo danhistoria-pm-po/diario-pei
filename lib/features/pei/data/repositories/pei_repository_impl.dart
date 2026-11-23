@@ -1,5 +1,6 @@
 import '../../domain/entities/aluno.dart';
 import '../../domain/entities/escola.dart';
+import '../../domain/entities/membro_escola.dart';
 import '../../domain/entities/meta_pei.dart';
 import '../../domain/entities/registro_diario.dart';
 import '../../domain/repositories/pei_repository.dart';
@@ -28,6 +29,16 @@ class PeiRepositoryImpl implements PeiRepository {
   @override
   Future<void> atualizarNomeEscola(String escolaId, String novoNome) {
     return _datasource.atualizarNomeEscola(escolaId, novoNome);
+  }
+
+  @override
+  Future<List<MembroEscola>> listarMembrosEscola(String escolaId) {
+    return _datasource.listarMembrosEscola(escolaId);
+  }
+
+  @override
+  Future<void> removerMembroEscola(String membroId) {
+    return _datasource.removerMembroEscola(membroId);
   }
 
   @override
@@ -105,12 +116,14 @@ class PeiRepositoryImpl implements PeiRepository {
     required DateTime dataRegistro,
     required String categoria,
     required String descricao,
+    String? disciplina,
   }) {
     return _datasource.criarRegistro(
       alunoId: alunoId,
       dataRegistro: dataRegistro,
       categoria: categoria,
       descricao: descricao,
+      disciplina: disciplina,
     );
   }
 

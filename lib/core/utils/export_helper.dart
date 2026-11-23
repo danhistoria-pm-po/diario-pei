@@ -74,6 +74,7 @@ class ExportHelper {
   }
 
   static void exportarDoc({
+    String? nomeEscola,
     required String nomeAluno,
     required String turma,
     required String conteudoTexto,
@@ -81,6 +82,7 @@ class ExportHelper {
     final tituloArquivo = sanitizarNomeArquivo(nomeAluno);
     platform.exportarParecerDocPlatform(
       tituloArquivo,
+      nomeEscola?.trim() ?? '',
       nomeAluno,
       turma,
       conteudoTexto,
@@ -88,11 +90,13 @@ class ExportHelper {
   }
 
   static void exportarPdf({
+    String? nomeEscola,
     required String nomeAluno,
     required String turma,
     required String conteudoTexto,
   }) {
     platform.exportarParecerPdfPlatform(
+      nomeEscola?.trim() ?? '',
       nomeAluno,
       turma,
       conteudoTexto,

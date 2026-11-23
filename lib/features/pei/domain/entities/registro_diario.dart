@@ -1,9 +1,28 @@
+const List<String> kDisciplinasEscolares = <String>[
+  'Geral / AEE',
+  'Língua Portuguesa',
+  'Matemática',
+  'História',
+  'Geografia',
+  'Ciências',
+  'Biologia',
+  'Física',
+  'Química',
+  'Inglês',
+  'Arte',
+  'Educação Física',
+  'Filosofia',
+  'Sociologia',
+  'Outra',
+];
+
 class RegistroDiario {
   const RegistroDiario({
     required this.id,
     required this.alunoId,
     required this.professorId,
     this.autorEmail,
+    this.disciplina,
     required this.dataRegistro,
     required this.categoria,
     required this.descricao,
@@ -14,6 +33,7 @@ class RegistroDiario {
   final String alunoId;
   final String professorId;
   final String? autorEmail;
+  final String? disciplina;
   final DateTime dataRegistro;
   final String categoria;
   final String descricao;
@@ -24,6 +44,7 @@ class RegistroDiario {
     String? alunoId,
     String? professorId,
     String? autorEmail,
+    String? disciplina,
     DateTime? dataRegistro,
     String? categoria,
     String? descricao,
@@ -34,6 +55,7 @@ class RegistroDiario {
       alunoId: alunoId ?? this.alunoId,
       professorId: professorId ?? this.professorId,
       autorEmail: autorEmail ?? this.autorEmail,
+      disciplina: disciplina ?? this.disciplina,
       dataRegistro: dataRegistro ?? this.dataRegistro,
       categoria: categoria ?? this.categoria,
       descricao: descricao ?? this.descricao,

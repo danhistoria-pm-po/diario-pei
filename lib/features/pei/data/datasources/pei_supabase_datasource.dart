@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/meta_pei.dart';
 import '../models/aluno_model.dart';
 import '../models/escola_model.dart';
+import '../models/membro_escola_model.dart';
 import '../models/meta_pei_model.dart';
 import '../models/registro_diario_model.dart';
 
@@ -72,6 +73,7 @@ class PeiSupabaseDatasource {
     await _client.from(_membrosEscolaTable).insert(<String, dynamic>{
       'escola_id': escolaId,
       'user_id': userId,
+      'user_email': _client.auth.currentUser?.email,
       'papel': 'coordenador',
     });
 
@@ -104,6 +106,7 @@ class PeiSupabaseDatasource {
     await _client.from(_membrosEscolaTable).insert(<String, dynamic>{
       'escola_id': escolaId,
       'user_id': userId,
+      'user_email': _client.auth.currentUser?.email,
       'papel': 'professor',
     });
 
@@ -121,6 +124,29 @@ class PeiSupabaseDatasource {
         .from(_escolasTable)
         .update(<String, dynamic>{'nome': novoNome.trim()})
         .eq('id', escolaId);
+  }
+
+  Future<List<MembroEscolaModel>> listarMembrosEscola(String escolaId) async {
+    _requireUserId();
+    final rows = await _client
+        .from(_membrosEscolaTable)
+        .select('id, escola_id, user_id, user_email, papel, created_at')
+        .eq('escola_id', escolaId)
+        .order('papel', ascending: true)
+        .order('created_at', ascending: true);
+
+    return (rows as List<dynamic>)
+        .map(
+          (row) => MembroEscolaModel.fromMap(
+            Map<String, dynamic>.from(row as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> removerMembroEscola(String membroId) async {
+    _requireUserId();
+    await _client.from(_membrosEscolaTable).delete().eq('id', membroId);
   }
 
   Future<List<AlunoModel>> listarAlunos({String? busca}) async {
@@ -257,6 +283,7 @@ class PeiSupabaseDatasource {
     required DateTime dataRegistro,
     required String categoria,
     required String descricao,
+    String? disciplina,
   }) async {
     final userId = _requireUserId();
     final autorEmail = _client.auth.currentUser?.email;
@@ -264,6 +291,7 @@ class PeiSupabaseDatasource {
       'aluno_id': alunoId,
       'professor_id': userId,
       'autor_email': autorEmail,
+      'disciplina': _nullIfBlank(disciplina),
       'data_registro': MetaPeiModel.formatDateOnly(dataRegistro),
       'categoria': categoria.trim(),
       'descricao': descricao.trim(),

@@ -59,7 +59,8 @@
       return dia + '/' + mes + '/' + ano;
     }
 
-    function _montarHtmlParecer(nomeAluno, turma, conteudoTexto, paraWord) {
+    function _montarHtmlParecer(nomeEscola, nomeAluno, turma, conteudoTexto, paraWord) {
+      const escolaSegura = _escapeHtml(nomeEscola).trim();
       const alunoSeguro = _escapeHtml(nomeAluno);
       const turmaSegura = _escapeHtml(turma);
       const textoSeguro = _escapeHtml(conteudoTexto).replace(/\r?\n/g, '<br>');
@@ -69,41 +70,53 @@
         ? ' xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"'
         : '';
 
+      const pageRule = paraWord
+        ? '@page { size: A4; margin: 20mm; }'
+        : '@page { size: A4; margin: 0; }';
+
+      const bodyPadding = paraWord ? '24px' : '18mm';
+      const printBodyPadding = paraWord ? '0' : '18mm';
+
+      const blocoEscola = escolaSegura
+        ? '<div class="escola">' + escolaSegura + '</div>'
+        : '';
+
       return '<!DOCTYPE html>' +
         '<html lang="pt-BR"' + ns + '>' +
         '<head>' +
         '<meta charset="utf-8">' +
         '<title>PEI - ' + alunoSeguro + '</title>' +
         '<style>' +
-        '@page { size: A4; margin: 20mm; }' +
-        'body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; line-height: 1.55; font-size: 11.5pt; margin: 0; padding: 24px; }' +
+        pageRule +
+        'body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; line-height: 1.55; font-size: 11.5pt; margin: 0; padding: ' + bodyPadding + '; box-sizing: border-box; }' +
         '.header { border-bottom: 2px solid #1F6F78; padding-bottom: 12px; margin-bottom: 18px; }' +
+        '.escola { font-size: 12pt; font-weight: 700; color: #111827; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }' +
         '.header h1 { font-size: 15pt; margin: 0 0 6px 0; color: #1F6F78; }' +
         '.meta { font-size: 10.5pt; color: #374151; margin: 2px 0; }' +
         '.conteudo { margin-top: 16px; min-height: 320px; text-align: left; }' +
         '.assinaturas { margin-top: 64px; width: 100%; border-collapse: collapse; }' +
-        '.assinaturas td { width: 50%; text-align: center; padding: 0 20px; vertical-align: bottom; }' +
-        '.linha { border-top: 1px solid #374151; padding-top: 6px; font-size: 10pt; color: #374151; }' +
-        '@media print { body { padding: 0; } }' +
+        '.assinaturas td { width: 100%; text-align: center; padding: 0; vertical-align: bottom; }' +
+        '.linha { display: inline-block; width: 280px; border-top: 1px solid #374151; padding-top: 6px; font-size: 10pt; color: #374151; text-align: center; }' +
+        '@media print { body { padding: ' + printBodyPadding + '; } }' +
         '</style>' +
         '</head>' +
         '<body>' +
         '<div class="header">' +
+        blocoEscola +
         '<h1>Plano Educacional Individualizado - Parecer Pedagógico</h1>' +
         '<div class="meta"><strong>Aluno(a):</strong> ' + alunoSeguro + '</div>' +
         '<div class="meta"><strong>Turma:</strong> ' + turmaSegura + ' &nbsp;|&nbsp; <strong>Data:</strong> ' + dataAtual + '</div>' +
         '</div>' +
         '<div class="conteudo">' + textoSeguro + '</div>' +
         '<table class="assinaturas"><tr>' +
-        '<td><div class="linha">Coordenação Pedagógica / AEE</div></td>' +
-        '<td><div class="linha">Professor(a) Responsável</div></td>' +
+        '<td align="center"><div class="linha">Coordenação Pedagógica / AEE</div></td>' +
         '</tr></table>' +
         '</body>' +
         '</html>';
     }
 
-    function exportarParecerDoc(tituloArquivo, nomeAluno, turma, conteudoTexto) {
-      const html = _montarHtmlParecer(nomeAluno, turma, conteudoTexto, true);
+    function exportarParecerDoc(tituloArquivo, nomeEscola, nomeAluno, turma, conteudoTexto) {
+      const html = _montarHtmlParecer(nomeEscola, nomeAluno, turma, conteudoTexto, true);
       const blob = new Blob(['\ufeff' + html], {
         type: 'application/msword;charset=utf-8'
       });
@@ -121,8 +134,8 @@
       }, 1000);
     }
 
-    function exportarParecerPdf(nomeAluno, turma, conteudoTexto) {
-      const html = _montarHtmlParecer(nomeAluno, turma, conteudoTexto, false);
+    function exportarParecerPdf(nomeEscola, nomeAluno, turma, conteudoTexto) {
+      const html = _montarHtmlParecer(nomeEscola, nomeAluno, turma, conteudoTexto, false);
       const iframe = document.createElement('iframe');
       iframe.style.position = 'fixed';
       iframe.style.right = '0';

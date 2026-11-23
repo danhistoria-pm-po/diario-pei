@@ -5,6 +5,7 @@ import '../../../../core/utils/export_helper.dart';
 import '../../../../core/utils/pei_summary_formatter.dart';
 import '../../domain/entities/aluno.dart';
 import '../../domain/entities/meta_pei.dart';
+import '../../domain/entities/registro_diario.dart';
 import '../../domain/repositories/pei_repository.dart';
 import '../controllers/prontuario_controller.dart';
 import '../widgets/meta_form_dialog.dart';
@@ -17,10 +18,12 @@ class ProntuarioPage extends StatefulWidget {
     super.key,
     required this.aluno,
     required this.repository,
+    this.nomeEscola,
   });
 
   final Aluno aluno;
   final PeiRepository repository;
+  final String? nomeEscola;
 
   @override
   State<ProntuarioPage> createState() => _ProntuarioPageState();
@@ -105,6 +108,7 @@ class _ProntuarioPageState extends State<ProntuarioPage>
       return;
     }
     ExportHelper.exportarDoc(
+      nomeEscola: widget.nomeEscola,
       nomeAluno: widget.aluno.nome,
       turma: widget.aluno.turma,
       conteudoTexto: texto,
@@ -125,6 +129,7 @@ class _ProntuarioPageState extends State<ProntuarioPage>
       return;
     }
     ExportHelper.exportarPdf(
+      nomeEscola: widget.nomeEscola,
       nomeAluno: widget.aluno.nome,
       turma: widget.aluno.turma,
       conteudoTexto: texto,
@@ -163,6 +168,100 @@ class _ProntuarioPageState extends State<ProntuarioPage>
     }
   }
 
+  Future<void> _selecionarPeriodo() async {
+    final atual = _controller.filtroPeriodo;
+    final theme = Theme.of(context);
+
+    Widget buildOpcao(FiltroPeriodoDiario periodo, {double leftPadding = 16}) {
+      final selected = periodo == atual;
+      return ListTile(
+        dense: true,
+        contentPadding: EdgeInsets.only(left: leftPadding, right: 16),
+        selected: selected,
+        title: Text(periodo.label),
+        trailing: selected
+            ? Icon(Icons.check, size: 18, color: theme.colorScheme.primary)
+            : null,
+        onTap: () => Navigator.of(context).pop(periodo),
+      );
+    }
+
+    final selecionado = await showDialog<FiltroPeriodoDiario>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Selecionar período'),
+        contentPadding: const EdgeInsets.fromLTRB(0, 12, 0, 8),
+        content: SizedBox(
+          width: 340,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                buildOpcao(FiltroPeriodoDiario.todoPeriodo),
+                buildOpcao(FiltroPeriodoDiario.ultimos30Dias),
+                const Divider(height: 1),
+                ExpansionTile(
+                  title: const Text('Trimestres'),
+                  initiallyExpanded: false,
+                  shape: const Border(),
+                  collapsedShape: const Border(),
+                  children: <Widget>[
+                    buildOpcao(
+                      FiltroPeriodoDiario.primeiroTrimestre,
+                      leftPadding: 28,
+                    ),
+                    buildOpcao(
+                      FiltroPeriodoDiario.segundoTrimestre,
+                      leftPadding: 28,
+                    ),
+                    buildOpcao(
+                      FiltroPeriodoDiario.terceiroTrimestre,
+                      leftPadding: 28,
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  title: const Text('Bimestres'),
+                  initiallyExpanded: false,
+                  shape: const Border(),
+                  collapsedShape: const Border(),
+                  children: <Widget>[
+                    buildOpcao(
+                      FiltroPeriodoDiario.primeiroBimestre,
+                      leftPadding: 28,
+                    ),
+                    buildOpcao(
+                      FiltroPeriodoDiario.segundoBimestre,
+                      leftPadding: 28,
+                    ),
+                    buildOpcao(
+                      FiltroPeriodoDiario.terceiroBimestre,
+                      leftPadding: 28,
+                    ),
+                    buildOpcao(
+                      FiltroPeriodoDiario.quartoBimestre,
+                      leftPadding: 28,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+
+    if (selecionado != null) {
+      _controller.setFiltroPeriodo(selecionado);
+    }
+  }
+
   Future<void> _novoRegistro() async {
     final result = await showDialog<RegistroFormResult>(
       context: context,
@@ -173,6 +272,7 @@ class _ProntuarioPageState extends State<ProntuarioPage>
     final ok = await _controller.criarRegistro(
       dataRegistro: result.dataRegistro,
       categoria: result.categoria,
+      disciplina: result.disciplina,
       descricao: result.descricao,
     );
     if (!mounted) return;
@@ -406,8 +506,8 @@ class _ProntuarioPageState extends State<ProntuarioPage>
   }
 
   Widget _buildDiarioTab(ThemeData theme) {
-    final registros = _controller.registros;
-    if (registros.isEmpty) {
+    final todosRegistros = _controller.registros;
+    if (todosRegistros.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -437,17 +537,145 @@ class _ProntuarioPageState extends State<ProntuarioPage>
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 88),
-      itemCount: registros.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final registro = registros[index];
-        return RegistroDiarioTile(
-          registro: registro,
-          onDelete: () => _controller.excluirRegistro(registro.id),
-        );
-      },
+    final filtrados = _controller.registrosFiltrados;
+    final opcoesDisciplina = <String>[
+      ProntuarioController.filtroDisciplinaTodas,
+      ...kDisciplinasEscolares,
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: <Widget>[
+                      SizedBox(
+                        width: 220,
+                        child: DropdownButtonFormField<String>(
+                          key: ValueKey<String>(
+                            'disc-${_controller.filtroDisciplina}',
+                          ),
+                          initialValue: _controller.filtroDisciplina,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Disciplina',
+                            isDense: true,
+                          ),
+                          items: opcoesDisciplina
+                              .map(
+                                (disciplina) => DropdownMenuItem<String>(
+                                  value: disciplina,
+                                  child: Text(
+                                    disciplina,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              _controller.setFiltroDisciplina(value);
+                            }
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 240,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: _selecionarPeriodo,
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Período',
+                              isDense: true,
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(
+                                    _controller.filtroPeriodo.label,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_drop_down),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_controller.temFiltroAtivo)
+                        TextButton.icon(
+                          onPressed: _controller.limparFiltros,
+                          icon: const Icon(Icons.filter_alt_off_outlined, size: 18),
+                          label: const Text('Limpar'),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Exibindo ${filtrados.length} de ${todosRegistros.length} registros',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: filtrados.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(
+                          Icons.filter_list_off_outlined,
+                          size: 48,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Nenhum registro encontrado com os filtros atuais.',
+                          style: theme.textTheme.titleMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        OutlinedButton.icon(
+                          onPressed: _controller.limparFiltros,
+                          icon: const Icon(Icons.clear_all, size: 18),
+                          label: const Text('Limpar filtros'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 88),
+                  itemCount: filtrados.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final registro = filtrados[index];
+                    return RegistroDiarioTile(
+                      registro: registro,
+                      onDelete: () => _controller.excluirRegistro(registro.id),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 

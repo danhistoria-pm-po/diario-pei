@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../domain/entities/aluno.dart';
 import '../../domain/entities/escola.dart';
+import '../../domain/entities/membro_escola.dart';
 import '../../domain/repositories/pei_repository.dart';
 import '../controllers/alunos_controller.dart';
 import '../controllers/auth_controller.dart';
@@ -136,12 +137,23 @@ class _AlunosPageState extends State<AlunosPage> {
     }
   }
 
+  Future<void> _abrirEquipeEscola() async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _EquipeEscolaDialog(
+        nomeEscola: widget.escola.nome,
+        escolaController: widget.escolaController,
+      ),
+    );
+  }
+
   void _abrirProntuario(Aluno aluno) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => ProntuarioPage(
           aluno: aluno,
           repository: widget.repository,
+          nomeEscola: widget.escola.nome,
         ),
       ),
     );
@@ -253,6 +265,15 @@ class _AlunosPageState extends State<AlunosPage> {
                               icon: const Icon(Icons.copy, size: 16),
                               label: const Text('Copiar código'),
                             ),
+                            if (widget.escola.papelUsuario == 'coordenador')
+                              OutlinedButton.icon(
+                                onPressed: _abrirEquipeEscola,
+                                icon: const Icon(
+                                  Icons.group_outlined,
+                                  size: 16,
+                                ),
+                                label: const Text('Equipe'),
+                              ),
                           ],
                         ),
                       ],
@@ -490,6 +511,155 @@ class _EditarEscolaDialogState extends State<_EditarEscolaDialog> {
         FilledButton(
           onPressed: _salvar,
           child: const Text('Salvar'),
+        ),
+      ],
+    );
+  }
+}
+
+class _EquipeEscolaDialog extends StatefulWidget {
+  const _EquipeEscolaDialog({
+    required this.nomeEscola,
+    required this.escolaController,
+  });
+
+  final String nomeEscola;
+  final EscolaController escolaController;
+
+  @override
+  State<_EquipeEscolaDialog> createState() => _EquipeEscolaDialogState();
+}
+
+class _EquipeEscolaDialogState extends State<_EquipeEscolaDialog> {
+  @override
+  void initState() {
+    super.initState();
+    widget.escolaController.carregarMembros();
+  }
+
+  Future<void> _confirmarRemocao(MembroEscola membro) async {
+    final rotulo = membro.email ?? 'este professor';
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remover professor'),
+        content: Text(
+          'Deseja remover "$rotulo" da equipe de ${widget.nomeEscola}?',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Remover'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+
+    final ok = await widget.escolaController.removerMembro(membro.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Membro removido da escola.'
+              : (widget.escolaController.errorMessage ??
+                    'Erro ao remover membro.'),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      title: Text('Equipe — ${widget.nomeEscola}'),
+      content: SizedBox(
+        width: 480,
+        child: ListenableBuilder(
+          listenable: widget.escolaController,
+          builder: (context, _) {
+            if (widget.escolaController.isLoadingMembros) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final membros = widget.escolaController.membros;
+            if (membros.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Text('Nenhum membro encontrado nesta escola.'),
+              );
+            }
+
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 360),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: membros.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final membro = membros[index];
+                  final isCoord = membro.isCoordenador;
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: isCoord
+                          ? theme.colorScheme.primaryContainer
+                          : theme.colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        isCoord
+                            ? Icons.admin_panel_settings_outlined
+                            : Icons.person_outline,
+                        size: 20,
+                        color: isCoord
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    title: Text(
+                      membro.email != null && membro.email!.isNotEmpty
+                          ? membro.email!
+                          : 'Usuário sem e-mail',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Chip(
+                        label: Text(isCoord ? 'Coordenador' : 'Professor'),
+                        visualDensity: VisualDensity.compact,
+                        side: BorderSide.none,
+                        backgroundColor: isCoord
+                            ? theme.colorScheme.primaryContainer
+                            : theme.colorScheme.secondaryContainer,
+                      ),
+                    ),
+                    trailing: isCoord
+                        ? null
+                        : IconButton(
+                            tooltip: 'Remover da escola',
+                            icon: const Icon(Icons.person_remove_outlined),
+                            onPressed: () => _confirmarRemocao(membro),
+                          ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Fechar'),
         ),
       ],
     );

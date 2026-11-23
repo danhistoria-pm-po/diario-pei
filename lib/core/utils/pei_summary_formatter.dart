@@ -19,13 +19,10 @@ class PeiSummaryFormatter {
     required List<MetaPei> metas,
     required List<RegistroDiario> registros,
   }) {
-    final buffer = StringBuffer()
-      ..writeln('=== RESUMO DO DIÁRIO PEI ===')
-      ..writeln('Aluno: ${aluno.nome}')
-      ..writeln('Turma: ${aluno.turma}');
+    final buffer = StringBuffer()..writeln('=== RESUMO DO DIÁRIO PEI ===');
 
     if (aluno.diagnostico != null && aluno.diagnostico!.trim().isNotEmpty) {
-      buffer.writeln('Diagnóstico / Necessidade: ${aluno.diagnostico!.trim()}');
+      buffer.writeln('Adaptação / Necessidade: ${aluno.diagnostico!.trim()}');
     }
     if (aluno.observacoes != null && aluno.observacoes!.trim().isNotEmpty) {
       buffer.writeln('Observações: ${aluno.observacoes!.trim()}');
@@ -60,8 +57,13 @@ class PeiSummaryFormatter {
       buffer.writeln('Nenhum registro lançado.');
     } else {
       for (final registro in registros) {
+        final disciplinaTexto =
+            registro.disciplina != null &&
+                registro.disciplina!.trim().isNotEmpty
+            ? ' [${registro.disciplina!.trim()}]'
+            : '';
         buffer.writeln(
-          '- ${formatDateBr(registro.dataRegistro)} [${registro.categoria}]: ${registro.descricao}',
+          '- ${formatDateBr(registro.dataRegistro)}$disciplinaTexto [${registro.categoria}]: ${registro.descricao}',
         );
       }
     }
