@@ -146,18 +146,49 @@ class _MetaFormDialogState extends State<MetaFormDialog> {
                 const Text('Status inicial'),
                 const SizedBox(height: 6),
                 SegmentedButton<StatusMetaPei>(
+                  showSelectedIcon: false,
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                      EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    ),
+                    textStyle: WidgetStatePropertyAll<TextStyle>(
+                      TextStyle(fontSize: 12),
+                    ),
+                  ),
                   segments: const <ButtonSegment<StatusMetaPei>>[
                     ButtonSegment<StatusMetaPei>(
                       value: StatusMetaPei.pendente,
-                      label: Text('Pendente'),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Pendente',
+                          maxLines: 1,
+                          softWrap: false,
+                        ),
+                      ),
                     ),
                     ButtonSegment<StatusMetaPei>(
                       value: StatusMetaPei.emAndamento,
-                      label: Text('Andamento'),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Andamento',
+                          maxLines: 1,
+                          softWrap: false,
+                        ),
+                      ),
                     ),
                     ButtonSegment<StatusMetaPei>(
                       value: StatusMetaPei.atingida,
-                      label: Text('Atingida'),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Atingida',
+                          maxLines: 1,
+                          softWrap: false,
+                        ),
+                      ),
                     ),
                   ],
                   selected: <StatusMetaPei>{_status},

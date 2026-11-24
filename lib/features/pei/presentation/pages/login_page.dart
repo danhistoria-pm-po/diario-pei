@@ -140,181 +140,213 @@ class _LoginPageState extends State<LoginPage> {
                 final info = widget.authController.infoMessage;
                 final canSubmit = !isLoading && (!_isSignUpMode || _lgpdAceito);
 
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(28),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Icon(
-                            Icons.menu_book_rounded,
-                            size: 48,
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Diário PEI',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Plano Educacional Individualizado e Diário de Bordo',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          if (error != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.errorContainer,
-                                borderRadius: BorderRadius.circular(10),
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(28),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              Icon(
+                                Icons.menu_book_rounded,
+                                size: 48,
+                                color: theme.colorScheme.primary,
                               ),
-                              child: Text(
-                                error,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onErrorContainer,
+                              const SizedBox(height: 12),
+                              Text(
+                                'Diário PEI',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 14),
-                          ],
-                          if (info != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                info,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onPrimaryContainer,
+                              const SizedBox(height: 4),
+                              Text(
+                                'Plano Educacional Individualizado e Diário de Bordo',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 14),
-                          ],
-                          TextFormField(
-                            controller: _emailController,
-                            enabled: !isLoading,
-                            keyboardType: TextInputType.emailAddress,
-                            autofillHints: const <String>[AutofillHints.email],
-                            decoration: const InputDecoration(
-                              labelText: 'E-mail institucional',
-                              prefixIcon: Icon(Icons.email_outlined),
-                            ),
-                            validator: (value) {
-                              final trimmed = value?.trim() ?? '';
-                              if (trimmed.isEmpty || !trimmed.contains('@')) {
-                                return 'Informe um e-mail válido.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 14),
-                          TextFormField(
-                            controller: _passwordController,
-                            enabled: !isLoading,
-                            obscureText: _obscurePassword,
-                            autofillHints: const <String>[
-                              AutofillHints.password,
-                            ],
-                            onFieldSubmitted: (_) {
-                              if (canSubmit) _submit();
-                            },
-                            decoration: InputDecoration(
-                              labelText: 'Senha',
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                tooltip: _obscurePassword
-                                    ? 'Mostrar senha'
-                                    : 'Ocultar senha',
-                                onPressed: () {
-                                  setState(
-                                    () => _obscurePassword = !_obscurePassword,
-                                  );
+                              const SizedBox(height: 24),
+                              if (error != null) ...[
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.errorContainer,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    error,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onErrorContainer,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                              ],
+                              if (info != null) ...[
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    info,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color:
+                                          theme.colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                              ],
+                              TextFormField(
+                                controller: _emailController,
+                                enabled: !isLoading,
+                                keyboardType: TextInputType.emailAddress,
+                                autofillHints: const <String>[
+                                  AutofillHints.email,
+                                ],
+                                decoration: const InputDecoration(
+                                  labelText: 'E-mail institucional',
+                                  prefixIcon: Icon(Icons.email_outlined),
+                                ),
+                                validator: (value) {
+                                  final trimmed = value?.trim() ?? '';
+                                  if (trimmed.isEmpty ||
+                                      !trimmed.contains('@')) {
+                                    return 'Informe um e-mail válido.';
+                                  }
+                                  return null;
                                 },
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                ),
                               ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.length < 6) {
-                                return 'A senha deve ter pelo menos 6 caracteres.';
-                              }
-                              return null;
-                            },
-                          ),
-                          if (_isSignUpMode) ...[
-                            const SizedBox(height: 14),
-                            CheckboxListTile(
-                              value: _lgpdAceito,
-                              onChanged: isLoading
-                                  ? null
-                                  : (checked) {
+                              const SizedBox(height: 14),
+                              TextFormField(
+                                controller: _passwordController,
+                                enabled: !isLoading,
+                                obscureText: _obscurePassword,
+                                autofillHints: const <String>[
+                                  AutofillHints.password,
+                                ],
+                                onFieldSubmitted: (_) {
+                                  if (canSubmit) _submit();
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Senha',
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIcon: IconButton(
+                                    tooltip: _obscurePassword
+                                        ? 'Mostrar senha'
+                                        : 'Ocultar senha',
+                                    onPressed: () {
                                       setState(
-                                        () => _lgpdAceito = checked ?? false,
+                                        () => _obscurePassword =
+                                            !_obscurePassword,
                                       );
                                     },
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              title: Text(
-                                'Li e concordo com os Termos de Uso e Diretrizes da LGPD para tratamento de dados educacionais.',
-                                style: theme.textTheme.bodySmall,
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: TextButton.icon(
-                                onPressed: isLoading ? null : _abrirTermoLgpd,
-                                icon: const Icon(
-                                  Icons.privacy_tip_outlined,
-                                  size: 18,
-                                ),
-                                label: const Text('Ler Termo LGPD'),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 18),
-                          FilledButton(
-                            onPressed: canSubmit ? _submit : null,
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
                                     ),
-                                  )
-                                : Text(
-                                    _isSignUpMode ? 'Criar conta' : 'Entrar',
                                   ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.length < 6) {
+                                    return 'A senha deve ter pelo menos 6 caracteres.';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              if (_isSignUpMode) ...[
+                                const SizedBox(height: 14),
+                                CheckboxListTile(
+                                  value: _lgpdAceito,
+                                  onChanged: isLoading
+                                      ? null
+                                      : (checked) {
+                                          setState(
+                                            () =>
+                                                _lgpdAceito = checked ?? false,
+                                          );
+                                        },
+                                  contentPadding: EdgeInsets.zero,
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  title: Text(
+                                    'Li e concordo com os Termos de Uso e Diretrizes da LGPD para tratamento de dados educacionais.',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: TextButton.icon(
+                                    onPressed: isLoading
+                                        ? null
+                                        : _abrirTermoLgpd,
+                                    icon: const Icon(
+                                      Icons.privacy_tip_outlined,
+                                      size: 18,
+                                    ),
+                                    label: const Text('Ler Termo LGPD'),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 18),
+                              FilledButton(
+                                onPressed: canSubmit ? _submit : null,
+                                child: isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(
+                                        _isSignUpMode
+                                            ? 'Criar conta'
+                                            : 'Entrar',
+                                      ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: isLoading ? null : _toggleMode,
+                                child: Text(
+                                  _isSignUpMode
+                                      ? 'Já possui conta? Entrar'
+                                      : 'Primeiro acesso? Criar conta',
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: isLoading ? null : _toggleMode,
-                            child: Text(
-                              _isSignUpMode
-                                  ? 'Já possui conta? Entrar'
-                                  : 'Primeiro acesso? Criar conta',
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    const Column(
+                      children: <Widget>[
+                        Text(
+                          'Desenvolvido por Danny Bustamante',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 11, color: Colors.black45),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'CNPJ: 68.929.253/0001-88',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 11, color: Colors.black45),
+                        ),
+                      ],
+                    ),
+                  ],
                 );
               },
             ),
