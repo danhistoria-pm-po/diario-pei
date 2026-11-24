@@ -163,12 +163,13 @@ class _AlunosPageState extends State<AlunosPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final email = widget.authController.currentUser?.email;
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Diário PEI — Alunos'),
+        title: Text(isMobile ? 'Diário PEI' : 'Diário PEI — Alunos'),
         actions: <Widget>[
-          if (email != null && email.isNotEmpty)
+          if (!isMobile && email != null && email.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Center(
@@ -192,6 +193,25 @@ class _AlunosPageState extends State<AlunosPage> {
           ),
           const SizedBox(width: 8),
         ],
+        bottom: isMobile && email != null && email.isNotEmpty
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(22),
+                child: Container(
+                  width: double.infinity,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                  child: Text(
+                    email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              )
+            : null,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _abrirCadastroAluno,

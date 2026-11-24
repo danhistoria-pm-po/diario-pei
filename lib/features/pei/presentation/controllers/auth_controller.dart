@@ -61,6 +61,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<bool> signUp({
+    required String nome,
     required String email,
     required String password,
   }) async {
@@ -69,10 +70,13 @@ class AuthController extends ChangeNotifier {
     _infoMessage = null;
 
     try {
+      final nomeLimpo = nome.trim();
       final response = await _client.auth.signUp(
         email: email.trim(),
         password: password,
         data: <String, dynamic>{
+          'nome': nomeLimpo,
+          'full_name': nomeLimpo,
           'lgpd_aceito': true,
           'lgpd_aceito_em': DateTime.now().toUtc().toIso8601String(),
         },

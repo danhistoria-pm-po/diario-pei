@@ -16,6 +16,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -25,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    _nomeController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -46,6 +48,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (_isSignUpMode) {
       await widget.authController.signUp(
+        nome: _nomeController.text,
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -127,11 +130,12 @@ class _LoginPageState extends State<LoginPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
             child: ListenableBuilder(
               listenable: widget.authController,
               builder: (context, _) {
@@ -204,6 +208,29 @@ class _LoginPageState extends State<LoginPage> {
                                           theme.colorScheme.onPrimaryContainer,
                                     ),
                                   ),
+                                ),
+                                const SizedBox(height: 14),
+                              ],
+                              if (_isSignUpMode) ...[
+                                TextFormField(
+                                  controller: _nomeController,
+                                  enabled: !isLoading,
+                                  textCapitalization: TextCapitalization.words,
+                                  autofillHints: const <String>[
+                                    AutofillHints.name,
+                                  ],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Nome completo',
+                                    prefixIcon: Icon(Icons.person_outline),
+                                  ),
+                                  validator: (value) {
+                                    if (!_isSignUpMode) return null;
+                                    final trimmed = value?.trim() ?? '';
+                                    if (trimmed.length < 3) {
+                                      return 'Informe seu nome completo.';
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 14),
                               ],
@@ -346,12 +373,14 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
                   ],
                 );
               },
             ),
           ),
         ),
+      ),
       ),
     );
   }
